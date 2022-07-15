@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: skiapp
+  labels:
+    app: skiapp
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: skiapp
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: skiapp
+    spec:
+      containers:
+        - image: sharepointoscar/skiapp:v2
+          imagePullPolicy: Always
+          name: skiapp
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "1024m"
+            limits:
+              memory: "512Mi"
+              cpu: "1024m"
+      #Deploy this app on the Karpenter nodes created by the default-lt provisioner
+      nodeSelector:
+        type: "karpenter"
+        provisioner: "default-lt"
+      tolerations:
+        - key: "default-lt"
+          operator: "Exists"
+          effect: "NoSchedule"
